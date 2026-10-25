@@ -172,11 +172,15 @@ function dibujarPie(ctx, f) {
   if (str) escribirSuelto(ctx, str, f.pie.fs, 600, f.pie.x, f.pie.base, 'left');
 }
 
-// Logo del productor abajo a la derecha, con la leyenda alineada a su borde.
+// Logo del productor abajo a la derecha: la leyenda termina en "der" y el
+// logo va centrado debajo de ella.
 function dibujarProductor(ctx, f) {
-  const p = f.productor, x = p.der - p.lado, y = p.abajo - p.lado;
-  ctx.drawImage(teatro.img.productor, x, y, p.lado, p.lado);
-  escribirSuelto(ctx, teatro.productor.texto, p.fs, 400, p.der, y - p.separacion, 'right');
+  const p = f.productor, y = p.abajo - p.lado;
+  const leyenda = teatro.productor.texto;
+  const m = medir(ctx, leyenda, p.fs, FUENTE_TEXTO);
+  const centro = p.der - ancho(m) / 2;
+  escribirSuelto(ctx, leyenda, p.fs, 400, centro, y - p.separacion, 'center');
+  ctx.drawImage(teatro.img.productor, centro - p.lado / 2, y, p.lado, p.lado);
 }
 
 // Estira una imagen a lo ancho sin deformar sus puntas.
@@ -191,14 +195,16 @@ function dibujarFecha(ctx, f, hayAgotado) {
   const p = f.fecha, str = textoPrincipal();
   if (!str) return { L: p.ref[0], T: p.ref[1], R: p.ref[2], B: p.ref[3] };
   const m = medir(ctx, str, p.fs, FUENTE_FECHA, p.tracking);
-  let fs = Math.min(p.fs, p.fs * p.maxW / ancho(m));
+  // el tamaño del PSD es el tope: solo se achica si no entra a lo ancho
+  const fs = Math.min(p.fs, p.fs * p.maxW / ancho(m));
+  let base = p.base;
   if (!hayAgotado && p.techoSinAgotado) {
-    // sin la línea de agotado, la fecha crece hacia arriba hasta ese techo
-    const subida = m.actualBoundingBoxAscent / p.fs;
-    fs = Math.min((p.base - p.techoSinAgotado) / subida, p.fs * p.maxW / ancho(m));
+    // sin la línea de agotado la fecha se centra en el espacio que queda libre
+    const subida = m.actualBoundingBoxAscent * fs / p.fs;
+    base = (p.techoSinAgotado + p.base + subida) / 2;
   }
-  escribir(ctx, str, fs, FUENTE_FECHA, p.cx, p.base, true, p.tracking);
-  return caja(medir(ctx, str, fs, FUENTE_FECHA, p.tracking), p.cx, p.base);
+  escribir(ctx, str, fs, FUENTE_FECHA, p.cx, base, true, p.tracking);
+  return caja(medir(ctx, str, fs, FUENTE_FECHA, p.tracking), p.cx, base);
 }
 
 function dibujarAgotado(ctx, f, str) {

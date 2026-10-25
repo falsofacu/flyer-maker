@@ -8,7 +8,7 @@ Se publica en https://falsofacu.github.io/flyer-maker.
 1. Elegí el teatro, la fecha y la hora de la función. El texto ("31 DE OCTUBRE - 21:30 H") se arma solo, pero se puede editar a mano (↺ lo vuelve a armar).
 2. Con **+ Agregar fecha** sumás todas las funciones que quieras, cada una con su teatro. Cada función sale como un juego completo de flyers de su teatro, así que en un solo .zip salen todos. La resaltada es la que se ve en las vistas previas.
 3. Opcional: **Nueva función** (texto arriba con líneas a los costados; Enter para partirlo en dos renglones).
-4. Opcional: **Función agotada** (fecha tachada con sello de agotado). Apagada, la fecha principal crece hacia arriba.
+4. Opcional: **Función agotada** (fecha tachada con sello de agotado). Apagada, la fecha principal se centra en el espacio que queda libre.
 5. Los brillos siguen el largo de la fecha. Se pueden arrastrar en cada vista previa o apagar desde abajo de cada una.
 6. Descargá cada formato por separado (de la fecha resaltada) o todo junto en un .zip (PNG o JPG). Con varias fechas, el .zip trae una carpeta por función ("Movie - 31 octubre").
 
@@ -61,4 +61,4 @@ Opciones de cada formato en `teatro.json`:
 - `fecha.tracking`: el tracking del texto de la fecha si no es 10 (en em: tracking 50 = `0.05`).
 - `nueva` y `agotado`: si un formato no los tiene, esa opción no aparece en ese flyer.
 - `pie` (en el teatro, el texto por defecto; en cada formato, `x`, `base` y `fs`): texto editable abajo a la izquierda.
-- `productor` (en el teatro, `img` y `texto`; en cada formato, `der`, `abajo`, `lado`, `fs` y `separacion`): logo cuadrado del productor abajo a la derecha con su leyenda encima.
+- `productor` (en el teatro, `img` y `texto`; en cada formato, `der`, `abajo`, `lado`, `fs` y `separacion`): logo cuadrado del productor abajo a la derecha, centrado bajo su leyenda (la leyenda termina en `der`).

@@ -15,7 +15,7 @@
         "tachado": { "extIzq": 14.4, "extDer": 3.2, "padIzq": 20.6, "padDer": 19.6, "dy": -12 }
       },
       "pie": { "x": 40, "base": 1052, "fs": 17 },
-      "productor": { "der": 1040, "abajo": 1052, "lado": 100, "fs": 15, "separacion": 10 },
+      "productor": { "der": 1040, "abajo": 1052, "lado": 100, "fs": 14, "separacion": 9 },
       "brillos": ["brillo1", "brillo2"]
     },
     {
@@ -28,7 +28,7 @@
         "tachado": { "extIzq": 18, "extDer": 4, "padIzq": 20, "padDer": 20, "dy": -12 }
       },
       "pie": { "x": 24, "base": 1295, "fs": 19.6 },
-      "productor": { "der": 1023, "abajo": 1295, "lado": 115, "fs": 17, "separacion": 10 },
+      "productor": { "der": 1040, "abajo": 1298, "lado": 105, "fs": 15, "separacion": 9 },
       "brillos": ["brillo1", "brillo2"]
     },
     {
@@ -41,7 +41,7 @@
         "tachado": { "extIzq": 18, "extDer": 50, "padIzq": 14, "padDer": 26, "dy": -13 }
       },
       "pie": { "x": 34, "base": 1866, "fs": 27.9 },
-      "productor": { "der": 1030, "abajo": 1892, "lado": 140, "fs": 19, "separacion": 12 },
+      "productor": { "der": 1042, "abajo": 1894, "lado": 112, "fs": 17, "separacion": 10 },
       "brillos": ["brillo1", "brillo2"]
     }
   ]
