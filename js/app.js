@@ -14,7 +14,8 @@ const CLAVE = 'flyer-maker:v1';
 
 const $ = (s) => document.querySelector(s);
 
-let teatro = null;
+let teatro = null;               // el de la fecha activa, el que se ve
+let listaTeatros = [];
 let tarjetas = [];
 let state = Object.assign(estadoInicial(), leerGuardado());
 if (!(state.activa < state.fechas.length)) state.activa = 0;
@@ -22,9 +23,9 @@ if (!(state.activa < state.fechas.length)) state.activa = 0;
 function estadoInicial() {
   const hoy = new Date().toISOString().slice(0, 10);
   return {
-    teatro: 'movie',
-    // cada fecha sale como un juego completo de flyers; "activa" es la que se ve
-    fechas: [{ fecha: hoy, hora: '21:30', texto: null }], activa: 0,
+    // cada fecha es una función en un teatro y sale como un juego completo de
+    // flyers de ese teatro; "activa" es la que se ve en las vistas previas
+    fechas: [{ teatro: 'movie', fecha: hoy, hora: '21:30', texto: null }], activa: 0,
     nueva: { on: false, texto: 'NUEVA FUNCIÓN' },
     agotado: { on: false, fecha: hoy, hora: '21:30', texto: null },
     pie: {},
@@ -41,6 +42,8 @@ function leerGuardado() {
     g.fechas = [{ fecha: g.fecha, hora: g.hora, texto: g.textoFecha ?? null }];
     delete g.fecha; delete g.hora; delete g.textoFecha;
   }
+  if (g.fechas) for (const fn of g.fechas) fn.teatro ||= g.teatro || 'movie';
+  delete g.teatro;   // antes había un solo teatro para todo
   return g;
 }
 function guardar() {
@@ -57,15 +60,16 @@ function textoDe(fecha, hora) {
 const textoFuncion = (fn) => fn.texto ?? textoDe(fn.fecha, fn.hora);
 const textoPrincipal = () => textoFuncion(state.fechas[state.activa]);
 const textoAgotado = () => state.agotado.texto ?? textoDe(state.agotado.fecha, state.agotado.hora);
-const textoPie = () => state.pie[state.teatro] ?? teatro.pie;
+const textoPie = () => state.pie[teatro.id] ?? teatro.pie;
 
-// "31 octubre" para nombres de archivo; con la hora si hay dos funciones el mismo día.
+// "31 octubre" para nombres de archivo; con la hora si hay dos funciones el
+// mismo día en el mismo teatro.
 function cuando(i = state.activa) {
   const fn = state.fechas[i];
   if (!fn.fecha) return `fecha ${i + 1}`;
   const [, m, d] = fn.fecha.split('-').map(Number);
   const dia = `${d} ${MESES[m - 1].toLowerCase()}`;
-  const repetida = state.fechas.some((o, j) => j !== i && o.fecha === fn.fecha);
+  const repetida = state.fechas.some((o, j) => j !== i && o.fecha === fn.fecha && o.teatro === fn.teatro);
   return repetida && fn.hora ? `${dia} ${fn.hora.replace(':', '.')}` : dia;
 }
 
@@ -85,9 +89,17 @@ function cargarImg(src) {
   });
 }
 
-async function cargarTeatro(id) {
+// Cada teatro se carga una sola vez (imágenes incluidas) y queda en memoria.
+const cacheTeatros = {};
+const cargarTeatro = (id) => (cacheTeatros[id] ||= leerTeatro(id).catch((e) => {
+  delete cacheTeatros[id];
+  throw e;
+}));
+
+async function leerTeatro(id) {
   const dir = `teatros/${id}/`;
   const cfg = await (await fetch(dir + 'teatro.json')).json();
+  cfg.id = id;
   cfg.img = {};
   if (cfg.productor) cfg.img.productor = await cargarImg(dir + cfg.productor.img);
   await Promise.all(cfg.formatos.map(async (f) => {
@@ -228,7 +240,7 @@ function dibujarNueva(ctx, f) {
 }
 
 function estadoBrillos(f) {
-  const clave = `${state.teatro}:${f.id}`;
+  const clave = `${teatro.id}:${f.id}`;
   return (state.brillos[clave] ||= {});
 }
 
@@ -266,6 +278,7 @@ function redibujar() {
   if (pendiente) return;
   pendiente = requestAnimationFrame(() => {
     pendiente = 0;
+    if (exportando) return;
     for (const t of tarjetas) dibujar(t.f, t.ctx);
     guardar();
   });
@@ -364,25 +377,34 @@ async function descargar(f, canvas) {
   bajar(await aBlob(f, canvas), nombreArchivo(f));
 }
 
+// Cada fecha se dibuja con su teatro en canvas aparte, no en las vistas previas.
+let exportando = false;
 async function descargarZip() {
   const boton = $('#zip');
   boton.disabled = true;
-  const activa = state.activa, varias = state.fechas.length > 1;
+  exportando = true;
+  const activa = state.activa, visible = teatro, n = state.fechas.length;
   try {
     const zip = new JSZip();
-    for (let i = 0; i < state.fechas.length; i++) {
+    for (let i = 0; i < n; i++) {
       state.activa = i;
-      // con varias fechas, una carpeta por fecha (los nombres fijos se repetirían)
-      const carpeta = varias ? cuando(i) + '/' : '';
-      for (const t of tarjetas) {
-        dibujar(t.f, t.ctx);
-        zip.file(carpeta + nombreArchivo(t.f), await aBlob(t.f, t.canvas));
+      teatro = await cargarTeatro(state.fechas[i].teatro);
+      // con varias fechas, una carpeta por función (los nombres fijos se repetirían)
+      const carpeta = n > 1 ? `${teatro.archivo} - ${cuando(i)}/` : '';
+      for (const f of teatro.formatos) {
+        const canvas = document.createElement('canvas');
+        canvas.width = f.w; canvas.height = f.h;
+        dibujar(f, canvas.getContext('2d'));
+        zip.file(carpeta + nombreArchivo(f), await aBlob(f, canvas));
       }
     }
-    const nombre = varias ? `${state.fechas.length} fechas` : cuando();
-    bajar(await zip.generateAsync({ type: 'blob' }), `${teatro.archivo} - ${nombre}.zip`);
+    const unSoloTeatro = new Set(state.fechas.map((fn) => fn.teatro)).size === 1;
+    const nombre = unSoloTeatro ? `${teatro.archivo} - ${n > 1 ? `${n} fechas` : cuando()}` : `Flyers - ${n} fechas`;
+    bajar(await zip.generateAsync({ type: 'blob' }), `${nombre}.zip`);
   } finally {
     state.activa = activa;
+    teatro = visible;
+    exportando = false;
     boton.disabled = false;
     redibujar();
   }
@@ -404,9 +426,16 @@ function armarFechas() {
   cont.textContent = '';
   state.fechas.forEach((fn, i) => {
     const fila = $('#tplFecha').content.firstElementChild.cloneNode(true);
-    const [f, h, t] = ['.f', '.h', '.t'].map((s) => fila.querySelector(s));
+    const [sel, f, h, t] = ['.teatro', '.f', '.h', '.t'].map((s) => fila.querySelector(s));
     fila.classList.toggle('activa', i === state.activa);
     fila.querySelector('.n').textContent = state.fechas.length > 1 ? `Fecha ${i + 1}` : 'Fecha';
+    sel.innerHTML = listaTeatros.map((o) => `<option value="${o.id}">${o.nombre}</option>`).join('');
+    sel.value = fn.teatro;
+    sel.addEventListener('change', () => {
+      fn.teatro = sel.value;
+      if (i === state.activa) mostrarActiva();
+      guardar();
+    });
     f.value = fn.fecha; h.value = fn.hora; t.value = textoFuncion(fn);
     const cambio = () => { t.value = textoFuncion(fn); redibujar(); actualizarZip(); };
     f.addEventListener('input', () => { fn.fecha = f.value; cambio(); });
@@ -419,7 +448,7 @@ function armarFechas() {
       e.stopPropagation();
       state.fechas.splice(i, 1);
       if (state.activa >= i && state.activa > 0) state.activa--;
-      armarFechas(); redibujar();
+      armarFechas(); mostrarActiva();
     };
     // tocar una fila la muestra en las vistas previas
     fila.addEventListener('focusin', () => verFecha(i));
@@ -433,7 +462,18 @@ function verFecha(i) {
   if (state.activa === i) return;
   state.activa = i;
   document.querySelectorAll('#fechas .fecha').forEach((el, j) => el.classList.toggle('activa', j === i));
-  redibujar();
+  mostrarActiva();
+}
+
+// Si la fecha activa es de otro teatro, cambia las vistas previas a ese teatro.
+async function mostrarActiva() {
+  const id = state.fechas[state.activa].teatro;
+  if (teatro && teatro.id === id) { redibujar(); return; }
+  const t = await cargarTeatro(id);
+  if (state.fechas[state.activa].teatro !== id) return;   // cambió mientras cargaba
+  teatro = t;
+  reflejarEstado();
+  armarTarjetas();
 }
 
 function actualizarZip() {
@@ -458,13 +498,13 @@ function conectarFormulario() {
   const al = (sel, ev, fn) => $(sel).addEventListener(ev, () => { fn($(sel)); reflejarEstado(); redibujar(); });
   $('#agregarFecha').addEventListener('click', () => {
     const ultima = state.fechas[state.fechas.length - 1];
-    state.fechas.push({ fecha: sumarDia(ultima.fecha), hora: ultima.hora, texto: null });
+    state.fechas.push({ teatro: ultima.teatro, fecha: sumarDia(ultima.fecha), hora: ultima.hora, texto: null });
     state.activa = state.fechas.length - 1;
-    armarFechas(); redibujar();
+    armarFechas(); mostrarActiva();
     $('#fechas .fecha:last-child .f').focus();
   });
-  al('#pieTexto', 'input', (el) => { state.pie[state.teatro] = el.value; });
-  $('#pieRegen').addEventListener('click', () => { delete state.pie[state.teatro]; reflejarEstado(); redibujar(); });
+  al('#pieTexto', 'input', (el) => { state.pie[teatro.id] = el.value; });
+  $('#pieRegen').addEventListener('click', () => { delete state.pie[teatro.id]; reflejarEstado(); redibujar(); });
   al('#nuevaOn', 'change', (el) => { state.nueva.on = el.checked; });
   al('#nuevaTexto', 'input', (el) => { state.nueva.texto = el.value; });
   al('#agotadoOn', 'change', (el) => { state.agotado.on = el.checked; });
@@ -475,25 +515,19 @@ function conectarFormulario() {
     r.addEventListener('change', () => { state.salida = r.value; guardar(); }));
   $('#agRegen').addEventListener('click', () => { state.agotado.texto = null; reflejarEstado(); redibujar(); });
   $('#zip').addEventListener('click', descargarZip);
-  $('#teatro').addEventListener('change', async (e) => {
-    state.teatro = e.target.value;
-    teatro = await cargarTeatro(state.teatro);
-    reflejarEstado();
-    armarTarjetas();
-  });
 }
 
 async function iniciar() {
-  const lista = await (await fetch('teatros/index.json')).json();
-  if (!lista.some((t) => t.id === state.teatro)) state.teatro = lista[0].id;
-  $('#teatro').innerHTML = lista.map((t) => `<option value="${t.id}">${t.nombre}</option>`).join('');
-  $('#teatro').value = state.teatro;
+  listaTeatros = await (await fetch('teatros/index.json')).json();
+  for (const fn of state.fechas) {
+    if (!listaTeatros.some((t) => t.id === fn.teatro)) fn.teatro = listaTeatros[0].id;
+  }
   await Promise.all([
     document.fonts.load(`40px ${FUENTE_FECHA}`, 'ÁÉÍÓÚÑ0123456789'),
     document.fonts.load(`40px ${FUENTE_TEXTO}`, 'ÁÉÍÓÚÑ'),
     document.fonts.load(`600 40px ${FUENTE_TEXTO}`, 'ÁÉÍÓÚÑ–'),
   ]);
-  teatro = await cargarTeatro(state.teatro);
+  teatro = await cargarTeatro(state.fechas[state.activa].teatro);
   reflejarEstado();
   armarFechas();
   conectarFormulario();

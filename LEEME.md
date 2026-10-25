@@ -5,12 +5,12 @@ Se publica en https://falsofacu.github.io/flyer-maker.
 
 ## Uso
 
-1. Elegí el teatro.
-2. Cargá la fecha y la hora. El texto ("31 DE OCTUBRE - 21:30 H") se arma solo, pero se puede editar a mano (↺ lo vuelve a armar). Con **+ Agregar fecha** sumás todas las funciones que quieras: cada una sale como un juego completo de flyers, y la resaltada es la que se ve en las vistas previas.
+1. Elegí el teatro, la fecha y la hora de la función. El texto ("31 DE OCTUBRE - 21:30 H") se arma solo, pero se puede editar a mano (↺ lo vuelve a armar).
+2. Con **+ Agregar fecha** sumás todas las funciones que quieras, cada una con su teatro. Cada función sale como un juego completo de flyers de su teatro, así que en un solo .zip salen todos. La resaltada es la que se ve en las vistas previas.
 3. Opcional: **Nueva función** (texto arriba con líneas a los costados; Enter para partirlo en dos renglones).
 4. Opcional: **Función agotada** (fecha tachada con sello de agotado). Apagada, la fecha principal crece hacia arriba.
 5. Los brillos siguen el largo de la fecha. Se pueden arrastrar en cada vista previa o apagar desde abajo de cada una.
-6. Descargá cada formato por separado (de la fecha resaltada) o todo junto en un .zip (PNG o JPG). Con varias fechas, el .zip trae una carpeta por fecha.
+6. Descargá cada formato por separado (de la fecha resaltada) o todo junto en un .zip (PNG o JPG). Con varias fechas, el .zip trae una carpeta por función ("Movie - 31 octubre").
 
 Algunos teatros tienen además un **texto de abajo** editable (por ejemplo el nombre del teatro o dónde comprar entradas) y el logo del productor fijo abajo a la derecha.
 

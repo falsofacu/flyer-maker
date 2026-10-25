@@ -26,7 +26,6 @@ body {
   padding: 14px 24px; border-bottom: 1px solid var(--line);
 }
 .top h1 { margin: 0; font: 26px "GC Grind", sans-serif; letter-spacing: .02em; color: var(--gold); }
-.teatro { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 
 .layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 60px); }
 .panel {
@@ -52,7 +51,6 @@ input[type=text], input[type=date], input[type=time], textarea, select {
   background: #0d0614; color: var(--text); border: 1px solid var(--line); border-radius: 6px;
   padding: 8px 10px; font: inherit; color-scheme: dark;
 }
-select { width: auto; margin: 0; }
 textarea { resize: vertical; }
 input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 input[type=checkbox], input[type=radio] { accent-color: var(--accent); width: 16px; height: 16px; }

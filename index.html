@@ -9,9 +9,6 @@
 <body>
 <header class="top">
   <h1>Flyer Maker</h1>
-  <label class="teatro">Teatro
-    <select id="teatro"></select>
-  </label>
 </header>
 
 <main class="layout">
@@ -20,7 +17,7 @@
       <h2>Funciones</h2>
       <div id="fechas"></div>
       <button type="button" id="agregarFecha" class="secundario">+ Agregar fecha</button>
-      <p class="hint">Cada fecha sale como un juego completo de flyers. La resaltada es la que se ve en las vistas previas; tocá otra para verla. El texto se arma solo con la fecha y la hora; si lo editás a mano queda fijo hasta que toques ↺.</p>
+      <p class="hint">Cada fecha sale como un juego completo de flyers de su teatro, así que podés mezclar teatros y sacar todo junto. La resaltada es la que se ve en las vistas previas; tocá otra para verla. El texto se arma solo con la fecha y la hora; si lo editás a mano queda fijo hasta que toques ↺.</p>
     </section>
 
     <section id="seccionPie" hidden>
@@ -71,6 +68,7 @@
 <template id="tplFecha">
   <div class="fecha">
     <div class="fecha-cab"><span class="n"></span><button type="button" class="link quitar">Quitar</button></div>
+    <label>Teatro <select class="teatro"></select></label>
     <div class="row">
       <label>Fecha <input type="date" class="f"></label>
       <label>Hora <input type="time" class="h"></label>
