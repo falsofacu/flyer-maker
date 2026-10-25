@@ -29,6 +29,7 @@ function estadoInicial() {
     nueva: { on: false, texto: 'NUEVA FUNCIÓN' },
     agotado: { on: false, fecha: hoy, hora: '21:30', texto: null },
     pie: {},
+    web: {},        // fechas de la web tildadas o destildadas a mano
     brillos: {},
     salida: 'png',
   };
@@ -57,25 +58,28 @@ function textoDe(fecha, hora) {
   const [, m, d] = fecha.split('-').map(Number);
   return `${d} DE ${MESES[m - 1]}` + (hora ? ` - ${hora} H` : '');
 }
+// La función que se dibuja: la activa, o la que se está exportando.
+let enCurso = null;
+const funcionEnCurso = () => enCurso || state.fechas[state.activa];
+
 const textoFuncion = (fn) => fn.texto ?? textoDe(fn.fecha, fn.hora);
-const textoPrincipal = () => textoFuncion(state.fechas[state.activa]);
+const textoPrincipal = () => textoFuncion(funcionEnCurso());
 const textoAgotado = () => state.agotado.texto ?? textoDe(state.agotado.fecha, state.agotado.hora);
 const textoPie = () => state.pie[teatro.id] ?? teatro.pie;
 
 // "31 octubre" para nombres de archivo; con la hora si hay dos funciones el
 // mismo día en el mismo teatro.
-function cuando(i = state.activa) {
-  const fn = state.fechas[i];
-  if (!fn.fecha) return `fecha ${i + 1}`;
+function cuando(fn = funcionEnCurso(), lista = state.fechas) {
+  if (!fn.fecha) return `fecha ${lista.indexOf(fn) + 1}`;
   const [, m, d] = fn.fecha.split('-').map(Number);
   const dia = `${d} ${MESES[m - 1].toLowerCase()}`;
-  const repetida = state.fechas.some((o, j) => j !== i && o.fecha === fn.fecha && o.teatro === fn.teatro);
+  const repetida = lista.some((o) => o !== fn && o.fecha === fn.fecha && o.teatro === fn.teatro);
   return repetida && fn.hora ? `${dia} ${fn.hora.replace(':', '.')}` : dia;
 }
 
 // Algunos teatros piden un nombre y un tipo de archivo fijos por formato.
 const tipoSalida = (f) => f.tipo || state.salida;
-const nombreArchivo = (f) => (f.nombreFijo ? f.archivo : `${teatro.archivo} - ${f.archivo} - ${cuando()}`)
+const nombreArchivo = (f, dia = cuando()) => (f.nombreFijo ? f.archivo : `${teatro.archivo} - ${f.archivo} - ${dia}`)
   + '.' + tipoSalida(f);
 
 // ---------- carga ----------
@@ -377,38 +381,130 @@ async function descargar(f, canvas) {
   bajar(await aBlob(f, canvas), nombreArchivo(f));
 }
 
-// Cada fecha se dibuja con su teatro en canvas aparte, no en las vistas previas.
+// Exporta un .zip con un juego de flyers por función ({ teatro, fecha, hora,
+// texto }). Cada una se dibuja con su teatro en canvas aparte, no en las
+// vistas previas.
 let exportando = false;
-async function descargarZip() {
-  const boton = $('#zip');
+async function exportar(lista, boton) {
+  if (!lista.length) return;
   boton.disabled = true;
   exportando = true;
-  const activa = state.activa, visible = teatro, n = state.fechas.length;
+  const visible = teatro, n = lista.length;
   try {
     const zip = new JSZip();
-    for (let i = 0; i < n; i++) {
-      state.activa = i;
-      teatro = await cargarTeatro(state.fechas[i].teatro);
+    for (const fn of lista) {
+      enCurso = fn;
+      teatro = await cargarTeatro(fn.teatro);
+      const dia = cuando(fn, lista);
       // con varias fechas, una carpeta por función (los nombres fijos se repetirían)
-      const carpeta = n > 1 ? `${teatro.archivo} - ${cuando(i)}/` : '';
+      const carpeta = n > 1 ? `${teatro.archivo} - ${dia}/` : '';
       for (const f of teatro.formatos) {
         const canvas = document.createElement('canvas');
         canvas.width = f.w; canvas.height = f.h;
         dibujar(f, canvas.getContext('2d'));
-        zip.file(carpeta + nombreArchivo(f), await aBlob(f, canvas));
+        zip.file(carpeta + nombreArchivo(f, dia), await aBlob(f, canvas));
       }
     }
-    const unSoloTeatro = new Set(state.fechas.map((fn) => fn.teatro)).size === 1;
-    const nombre = unSoloTeatro ? `${teatro.archivo} - ${n > 1 ? `${n} fechas` : cuando()}` : `Flyers - ${n} fechas`;
+    const unSoloTeatro = new Set(lista.map((fn) => fn.teatro)).size === 1;
+    const nombre = unSoloTeatro ? `${teatro.archivo} - ${n > 1 ? `${n} fechas` : cuando(lista[0], lista)}` : `Flyers - ${n} fechas`;
     bajar(await zip.generateAsync({ type: 'blob' }), `${nombre}.zip`);
   } finally {
-    state.activa = activa;
+    enCurso = null;
     teatro = visible;
     exportando = false;
     boton.disabled = false;
     redibujar();
   }
 }
+
+const descargarZip = () => exportar(state.fechas, $('#zip'));
+
+// ---------- fechas de la web de Yipio ----------
+
+// Las fechas salen del mismo JSON que usa soyyipio.github.io, incluidas las
+// que tienen "visible": false (todavía no anunciadas en la web).
+const FECHAS_WEB = 'https://soyyipio.github.io/data/fechas.json';
+const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+let fechasWeb = null;
+
+const normalizar = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// "Teatro Movie" → movie, según los "lugares" de teatros/index.json
+function teatroDeLugar(lugar) {
+  const l = normalizar(lugar);
+  const exacto = listaTeatros.find((t) => (t.lugares || []).some((a) => normalizar(a) === l));
+  return exacto || listaTeatros.find((t) => (t.lugares || []).some((a) => l.includes(normalizar(a))));
+}
+
+// "2027-1-8" → "2027-01-08"
+const isoFecha = (s) => (s || '').split('-').map((p, i) => (i ? p.padStart(2, '0') : p)).join('-');
+
+const claveWeb = (f) => `${f.id}|${f.fecha}|${f.hora}`;
+
+async function cargarFechasWeb() {
+  $('#webEstado').textContent = 'Cargando fechas de soyyipio.github.io…';
+  try {
+    const r = await fetch(FECHAS_WEB, { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const hoy = new Date().toISOString().slice(0, 10);
+    fechasWeb = (await r.json()).map((f) => {
+      const fecha = isoFecha(f.fecha), t = teatroDeLugar(f.lugar);
+      return { ...f, fecha, hora: f.hora || '', teatro: t && t.id, pasada: fecha < hoy };
+    }).sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`));
+    $('#webEstado').textContent = `${fechasWeb.length} fechas de soyyipio.github.io.`;
+  } catch {
+    fechasWeb = null;
+    $('#webEstado').textContent = 'No pude cargar las fechas de soyyipio.github.io (¿sin conexión?).';
+  }
+  armarFechasWeb();
+}
+
+// Por defecto van tildadas las próximas que no están agotadas y tienen teatro.
+const elegidaPorDefecto = (f) => !!f.teatro && !f.pasada && !f.agotado;
+const elegida = (f) => !!f.teatro && (state.web[claveWeb(f)] ?? elegidaPorDefecto(f));
+
+function armarFechasWeb() {
+  const cont = $('#webLista');
+  cont.textContent = '';
+  for (const f of fechasWeb || []) {
+    const [y, m, d] = f.fecha.split('-').map(Number);
+    const fila = document.createElement('label');
+    fila.className = 'web-fecha' + (f.pasada ? ' pasada' : '');
+    const c = document.createElement('input');
+    c.type = 'checkbox';
+    c.checked = elegida(f);
+    c.disabled = !f.teatro;
+    c.onchange = () => { state.web[claveWeb(f)] = c.checked; guardar(); actualizarWeb(); };
+    const marcas = [
+      f.pasada && 'pasada', f.agotado && 'agotada', f.visible === false && 'oculta en la web',
+      !f.teatro && 'sin plantilla para este teatro', !f.hora && 'sin hora',
+    ].filter(Boolean).map((t) => `<span class="marca">${t}</span>`).join('');
+    const info = document.createElement('span');
+    info.innerHTML = `<b>${d} ${MESES_CORTOS[m - 1]} ${y}${f.hora ? ` · ${f.hora}` : ''}</b>`
+      + ` ${f.lugar || '?'}${f.ciudad ? `, ${f.ciudad}` : ''} ${marcas}`;
+    fila.append(c, info);
+    cont.appendChild(fila);
+  }
+  actualizarWeb();
+}
+
+function actualizarWeb() {
+  const n = (fechasWeb || []).filter(elegida).length;
+  const b = $('#webExportar');
+  b.disabled = !n;
+  b.textContent = n ? `Exportar ${n} ${n === 1 ? 'fecha' : 'fechas'} (.zip)` : 'Elegí al menos una fecha';
+}
+
+function elegirWeb(criterio) {
+  for (const f of fechasWeb || []) if (f.teatro) state.web[claveWeb(f)] = criterio(f);
+  guardar();
+  armarFechasWeb();
+}
+
+const exportarWeb = () => exportar(
+  fechasWeb.filter(elegida).map((f) => ({ teatro: f.teatro, fecha: f.fecha, hora: f.hora, texto: null })),
+  $('#webExportar'));
 
 // ---------- formulario ----------
 
@@ -515,6 +611,11 @@ function conectarFormulario() {
     r.addEventListener('change', () => { state.salida = r.value; guardar(); }));
   $('#agRegen').addEventListener('click', () => { state.agotado.texto = null; reflejarEstado(); redibujar(); });
   $('#zip').addEventListener('click', descargarZip);
+  $('#webExportar').addEventListener('click', exportarWeb);
+  $('#webRecargar').addEventListener('click', cargarFechasWeb);
+  $('#webTodas').addEventListener('click', () => elegirWeb(() => true));
+  $('#webNinguna').addEventListener('click', () => elegirWeb(() => false));
+  $('#webProximas').addEventListener('click', () => elegirWeb(elegidaPorDefecto));
 }
 
 async function iniciar() {
@@ -532,6 +633,7 @@ async function iniciar() {
   armarFechas();
   conectarFormulario();
   armarTarjetas();
+  cargarFechasWeb();
 }
 
 iniciar().catch((e) => {

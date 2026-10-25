@@ -14,6 +14,12 @@ Se publica en https://falsofacu.github.io/flyer-maker.
 
 Algunos teatros tienen además un **texto de abajo** editable (por ejemplo el nombre del teatro o dónde comprar entradas) y el logo del productor fijo abajo a la derecha.
 
+### Fechas de la web de Yipio
+
+Abajo de todo está la lista de funciones de `data/fechas.json` de soyyipio.github.io (se lee en vivo; **Recargar** la vuelve a pedir). Incluye las que tienen `"visible": false`, que no salen en la web. Cada función se asocia sola a su teatro por el campo `lugar`, con los `lugares` de `teatros/index.json` (sin importar mayúsculas ni tildes). Si un lugar no coincide con ningún teatro, aparece pero no se puede elegir.
+
+Vienen tildadas las próximas que no están agotadas. **Exportar** arma un .zip con todos los formatos de cada función elegida, con las mismas opciones de arriba (nueva función, agotada, brillos, PNG o JPG). La hora sale del JSON: si está vacía, el flyer lleva solo el día.
+
 Lo que cargás queda guardado en el navegador.
 
 Para probarla en local hace falta un servidor, porque abriendo el archivo directo el navegador bloquea la exportación:
@@ -47,7 +53,7 @@ Cada formato de un teatro tiene su carpeta en `teatros/<teatro>/<formato>/`, con
    python tools/recortar.py teatros/<teatro>/<formato>
    ```
    Si el lienzo del PSD quedó un píxel más corto que la medida pedida (pasa con el 1200x629 de Paseo La Plaza), agregá `--alto 629` y completa el fondo repitiendo la última fila.
-4. Agregá el formato en `teatro.json` y el teatro en `teatros/index.json`.
+4. Agregá el formato en `teatro.json` y el teatro en `teatros/index.json`, con los nombres con los que aparece en el `lugar` de las fechas de la web (`"lugares"`).
 
 Opciones de cada formato en `teatro.json`:
 

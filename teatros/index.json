@@ -1,5 +1,5 @@
 [
-  { "id": "movie", "nombre": "Teatro Movie" },
-  { "id": "paseo-la-plaza", "nombre": "Paseo La Plaza" },
-  { "id": "candilejas-2", "nombre": "Candilejas 2 – Villa Carlos Paz" }
+  { "id": "movie", "nombre": "Teatro Movie", "lugares": ["Teatro Movie", "Movie"] },
+  { "id": "paseo-la-plaza", "nombre": "Paseo La Plaza", "lugares": ["Paseo La Plaza"] },
+  { "id": "candilejas-2", "nombre": "Candilejas 2 – Villa Carlos Paz", "lugares": ["Candilejas 2", "Candilejas"] }
 ]

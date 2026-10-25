@@ -70,6 +70,19 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); width: 16
   flex: 0 0 auto; width: 36px; border: 1px solid var(--line); border-radius: 6px;
   background: #0d0614; color: var(--text); font-size: 16px;
 }
+.web-acciones { display: flex; gap: 14px; margin: 10px 0 6px; font-size: 13px; }
+.web-fecha {
+  display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 7px 0;
+  border-top: 1px solid var(--line); font-size: 13px; color: var(--text); cursor: pointer;
+}
+.web-fecha input { flex: 0 0 auto; margin-top: 1px; }
+.web-fecha b { font-weight: 500; }
+.web-fecha.pasada { opacity: .55; }
+.marca {
+  display: inline-block; margin: 2px 4px 0 0; padding: 0 6px; border-radius: 4px;
+  background: var(--line); color: var(--muted); font-size: 11px; white-space: nowrap;
+}
+
 .secundario {
   width: 100%; padding: 8px; border: 1px dashed var(--accent); border-radius: 6px;
   background: transparent; color: var(--accent);

@@ -60,6 +60,19 @@
       <p class="hint">Los formatos con nombre de archivo pedido por el teatro salen siempre con ese nombre y tipo.</p>
       <button type="button" id="zip" class="primary">Descargar todos (.zip)</button>
     </section>
+
+    <section>
+      <h2>Fechas de la web de Yipio</h2>
+      <p class="hint"><span id="webEstado"></span> <button type="button" class="link" id="webRecargar">Recargar</button></p>
+      <p class="hint">Cada fecha sale con su teatro, con las mismas opciones de arriba (nueva función, agotada, brillos, PNG o JPG). Incluye las ocultas en la web.</p>
+      <div class="web-acciones">
+        <button type="button" class="link" id="webProximas">Próximas</button>
+        <button type="button" class="link" id="webTodas">Todas</button>
+        <button type="button" class="link" id="webNinguna">Ninguna</button>
+      </div>
+      <div id="webLista"></div>
+      <button type="button" id="webExportar" class="primary">Exportar (.zip)</button>
+    </section>
   </aside>
 
   <section class="previews" id="previews"></section>
