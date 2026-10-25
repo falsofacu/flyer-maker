@@ -55,13 +55,53 @@ function savePng(doc, path) {
     doc.saveAs(new File(path), o, true, Extension.LOWERCASE);
 }
 
+// Escala la imagen (con los estilos de capa) sin el diálogo de Tamaño de imagen.
+function resizeImage(w, h) {
+    var d = new ActionDescriptor();
+    d.putUnitDouble(charIDToTypeID('Wdth'), charIDToTypeID('#Pxl'), w);
+    d.putUnitDouble(charIDToTypeID('Hght'), charIDToTypeID('#Pxl'), h);
+    d.putBoolean(stringIDToTypeID('scaleStyles'), true);
+    d.putEnumerated(charIDToTypeID('Intr'), charIDToTypeID('Intp'), stringIDToTypeID('bicubicAutomatic'));
+    executeAction(charIDToTypeID('ImgS'), d, DialogModes.NO);
+}
+
+// Achica todo el contenido a CFG.escalar.w x h y lo centra en un lienzo de
+// lienzoW x lienzoH, con el fondo original (sin escalar) recortado debajo.
+function escalar(doc, e) {
+    var snap = snapshot(doc, []), fondo = [];
+    for (var i = 0; i < e.fondo.length; i++) fondo.push(resolve(doc, e.fondo[i]));
+    for (var i = 0; i < doc.layers.length; i++) doc.layers[i].visible = false;
+    for (var i = 0; i < fondo.length; i++) fondo[i].visible = true;
+    var tmp = Folder.temp + '/flyer-maker-fondo.png';
+    savePng(doc, tmp);
+    for (var i = 0; i < snap.length; i++) snap[i][0].visible = snap[i][1];
+    for (var i = 0; i < fondo.length; i++) fondo[i].visible = false;
+
+    resizeImage(e.w, e.h);
+    doc.resizeCanvas(e.lienzoW, e.lienzoH, AnchorPosition.MIDDLECENTER);
+
+    var bg = app.open(new File(tmp));
+    bg.resizeCanvas(e.lienzoW, e.lienzoH, AnchorPosition.TOPCENTER);
+    var capa = bg.activeLayer;
+    if (capa.isBackgroundLayer) capa.isBackgroundLayer = false;
+    capa.duplicate(doc, ElementPlacement.PLACEATEND);
+    bg.close(SaveOptions.DONOTSAVECHANGES);
+    app.activeDocument = doc;
+}
+
 var log = [];
+var unidades = app.preferences.rulerUnits;
+app.preferences.rulerUnits = Units.PIXELS;
 var src = new File(CFG.psd);
 var orig = findDoc(src.fsName), opened = false;
 if (!orig) { orig = app.open(src); opened = true; }
 var doc = orig.duplicate('flyer-maker-tmp', false);
 app.activeDocument = doc;
 try {
+    // capas que no van en este teatro (ni en el fondo ni en los elementos)
+    if (CFG.quitar) for (var i = 0; i < CFG.quitar.length; i++) resolve(doc, CFG.quitar[i]).visible = false;
+    if (CFG.lienzo) doc.resizeCanvas(CFG.lienzo.w, CFG.lienzo.h, AnchorPosition.MIDDLECENTER);
+    if (CFG.escalar) escalar(doc, CFG.escalar);
     var snap = snapshot(doc, []);
     var restore = function () { for (var i = 0; i < snap.length; i++) snap[i][0].visible = snap[i][1]; };
     for (var i = 0; i < CFG.hide.length; i++) resolve(doc, CFG.hide[i]).visible = false;
@@ -77,5 +117,6 @@ try {
 } finally {
     doc.close(SaveOptions.DONOTSAVECHANGES);
     if (opened) orig.close(SaveOptions.DONOTSAVECHANGES);
+    app.preferences.rulerUnits = unidades;
 }
 'OK ' + log.join(',');

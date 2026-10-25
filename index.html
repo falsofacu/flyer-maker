@@ -17,15 +17,16 @@
 <main class="layout">
   <aside class="panel">
     <section>
-      <h2>Función</h2>
-      <div class="row">
-        <label>Fecha <input type="date" id="fecha"></label>
-        <label>Hora <input type="time" id="hora" value="21:30"></label>
-      </div>
-      <label>Texto
-        <input type="text" id="textoFecha" spellcheck="false">
-      </label>
-      <p class="hint">Se arma solo con la fecha y la hora. Si lo editás a mano queda fijo hasta que toques <button type="button" class="link" data-regen="principal">regenerar</button>.</p>
+      <h2>Funciones</h2>
+      <div id="fechas"></div>
+      <button type="button" id="agregarFecha" class="secundario">+ Agregar fecha</button>
+      <p class="hint">Cada fecha sale como un juego completo de flyers. La resaltada es la que se ve en las vistas previas; tocá otra para verla. El texto se arma solo con la fecha y la hora; si lo editás a mano queda fijo hasta que toques ↺.</p>
+    </section>
+
+    <section id="seccionPie" hidden>
+      <h2>Texto de abajo</h2>
+      <label>Texto <input type="text" id="pieTexto" spellcheck="false"></label>
+      <p class="hint">Va abajo a la izquierda. <button type="button" class="link" id="pieRegen">Volver al original</button></p>
     </section>
 
     <section>
@@ -44,7 +45,7 @@
           <label>Hora <input type="time" id="agHora" value="21:30"></label>
         </div>
         <label>Texto <input type="text" id="agTexto" spellcheck="false"></label>
-        <p class="hint">Fecha tachada con el sello de agotado (Post y Vertical). Apagado, la fecha principal crece hacia arriba. <button type="button" class="link" data-regen="agotado">regenerar</button></p>
+        <p class="hint">Fecha tachada con el sello de agotado (Post y Vertical). Apagado, la fecha principal crece hacia arriba. <button type="button" class="link" id="agRegen">regenerar</button></p>
       </div>
     </section>
 
@@ -66,6 +67,19 @@
 
   <section class="previews" id="previews"></section>
 </main>
+
+<template id="tplFecha">
+  <div class="fecha">
+    <div class="fecha-cab"><span class="n"></span><button type="button" class="link quitar">Quitar</button></div>
+    <div class="row">
+      <label>Fecha <input type="date" class="f"></label>
+      <label>Hora <input type="time" class="h"></label>
+    </div>
+    <label>Texto
+      <span class="con-boton"><input type="text" class="t" spellcheck="false"><button type="button" class="regen" title="Volver a armarlo con la fecha y la hora">↺</button></span>
+    </label>
+  </div>
+</template>
 
 <template id="tplCard">
   <article class="card">

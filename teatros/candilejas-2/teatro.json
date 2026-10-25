@@ -1,0 +1,48 @@
+{
+  "nombre": "Candilejas 2 – Villa Carlos Paz",
+  "archivo": "Candilejas 2",
+  "sombra": { "opacidad": 0.5, "distancia": 12, "tamano": 24, "angulo": 90 },
+  "pie": "CANDILEJAS 2 – VILLA CARLOS PAZ",
+  "productor": { "img": "productor.png", "texto": "UNA PRODUCCIÓN DE" },
+  "formatos": [
+    {
+      "id": "1080x1080", "nombre": "Cuadrado", "archivo": "1080x1080", "w": 1080, "h": 1080,
+      "fecha": { "cx": 540, "base": 886.4, "fs": 48.36, "maxW": 622, "ref": [324.8, 847.2, 715.2, 886.4], "techoSinAgotado": 804.8 },
+      "nueva": { "cx": 540.7, "cy": 28.5, "fs": 22.7, "bordeIzq": 263, "bordeDer": 816, "separacion": 11, "techo": 6, "piso": 46 },
+      "agotado": {
+        "dx": -8.8, "base": 826.9, "fs": 26.64, "maxW": 416,
+        "sello": { "dx": -49.6, "dy": -11.2 },
+        "tachado": { "extIzq": 14.4, "extDer": 3.2, "padIzq": 20.6, "padDer": 19.6, "dy": -12 }
+      },
+      "pie": { "x": 40, "base": 1052, "fs": 17 },
+      "productor": { "der": 1040, "abajo": 1052, "lado": 100, "fs": 15, "separacion": 10 },
+      "brillos": ["brillo1", "brillo2"]
+    },
+    {
+      "id": "1080x1320", "nombre": "Post", "archivo": "1080x1320", "w": 1080, "h": 1320,
+      "fecha": { "cx": 540, "base": 1093, "fs": 60.45, "maxW": 778, "ref": [271, 1044, 759, 1093], "techoSinAgotado": 991 },
+      "nueva": { "cx": 541, "cy": 21, "fs": 28.4, "bordeIzq": 194, "bordeDer": 885, "separacion": 14, "techo": 6, "piso": 44 },
+      "agotado": {
+        "dx": -11, "base": 1018.6, "fs": 33.3, "maxW": 520,
+        "sello": { "dx": -62, "dy": -14 },
+        "tachado": { "extIzq": 18, "extDer": 4, "padIzq": 20, "padDer": 20, "dy": -12 }
+      },
+      "pie": { "x": 24, "base": 1295, "fs": 19.6 },
+      "productor": { "der": 1023, "abajo": 1295, "lado": 115, "fs": 17, "separacion": 10 },
+      "brillos": ["brillo1", "brillo2"]
+    },
+    {
+      "id": "1080x1920", "nombre": "Vertical", "archivo": "1080x1920", "w": 1080, "h": 1920,
+      "fecha": { "cx": 540, "base": 1586, "fs": 80.6, "maxW": 945, "ref": [178, 1520, 902, 1586], "techoSinAgotado": 1432 },
+      "nueva": { "cx": 541, "cy": 117, "fs": 27.9, "bordeIzq": 194, "bordeDer": 885, "separacion": 22, "techo": 60, "piso": 190 },
+      "agotado": {
+        "dx": -15, "base": 1468, "fs": 44.44, "maxW": 640,
+        "sello": { "dx": -104, "dy": -16 },
+        "tachado": { "extIzq": 18, "extDer": 50, "padIzq": 14, "padDer": 26, "dy": -13 }
+      },
+      "pie": { "x": 34, "base": 1866, "fs": 27.9 },
+      "productor": { "der": 1030, "abajo": 1892, "lado": 140, "fs": 19, "separacion": 12 },
+      "brillos": ["brillo1", "brillo2"]
+    }
+  ]
+}

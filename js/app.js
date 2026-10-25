@@ -17,21 +17,31 @@ const $ = (s) => document.querySelector(s);
 let teatro = null;
 let tarjetas = [];
 let state = Object.assign(estadoInicial(), leerGuardado());
+if (!(state.activa < state.fechas.length)) state.activa = 0;
 
 function estadoInicial() {
   const hoy = new Date().toISOString().slice(0, 10);
   return {
     teatro: 'movie',
-    fecha: hoy, hora: '21:30', textoFecha: null,
+    // cada fecha sale como un juego completo de flyers; "activa" es la que se ve
+    fechas: [{ fecha: hoy, hora: '21:30', texto: null }], activa: 0,
     nueva: { on: false, texto: 'NUEVA FUNCIÓN' },
     agotado: { on: false, fecha: hoy, hora: '21:30', texto: null },
+    pie: {},
     brillos: {},
     salida: 'png',
   };
 }
 
 function leerGuardado() {
-  try { return JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch { return {}; }
+  let g = {};
+  try { g = JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch {}
+  if (g.fecha !== undefined && !g.fechas) {
+    // versión anterior: una sola fecha suelta
+    g.fechas = [{ fecha: g.fecha, hora: g.hora, texto: g.textoFecha ?? null }];
+    delete g.fecha; delete g.hora; delete g.textoFecha;
+  }
+  return g;
 }
 function guardar() {
   try { localStorage.setItem(CLAVE, JSON.stringify(state)); } catch {}
@@ -44,13 +54,19 @@ function textoDe(fecha, hora) {
   const [, m, d] = fecha.split('-').map(Number);
   return `${d} DE ${MESES[m - 1]}` + (hora ? ` - ${hora} H` : '');
 }
-const textoPrincipal = () => state.textoFecha ?? textoDe(state.fecha, state.hora);
+const textoFuncion = (fn) => fn.texto ?? textoDe(fn.fecha, fn.hora);
+const textoPrincipal = () => textoFuncion(state.fechas[state.activa]);
 const textoAgotado = () => state.agotado.texto ?? textoDe(state.agotado.fecha, state.agotado.hora);
+const textoPie = () => state.pie[state.teatro] ?? teatro.pie;
 
-function cuando() {
-  if (!state.fecha) return 'sin fecha';
-  const [, m, d] = state.fecha.split('-').map(Number);
-  return `${d} ${MESES[m - 1].toLowerCase()}`;
+// "31 octubre" para nombres de archivo; con la hora si hay dos funciones el mismo día.
+function cuando(i = state.activa) {
+  const fn = state.fechas[i];
+  if (!fn.fecha) return `fecha ${i + 1}`;
+  const [, m, d] = fn.fecha.split('-').map(Number);
+  const dia = `${d} ${MESES[m - 1].toLowerCase()}`;
+  const repetida = state.fechas.some((o, j) => j !== i && o.fecha === fn.fecha);
+  return repetida && fn.hora ? `${dia} ${fn.hora.replace(':', '.')}` : dia;
 }
 
 // Algunos teatros piden un nombre y un tipo de archivo fijos por formato.
@@ -72,6 +88,8 @@ function cargarImg(src) {
 async function cargarTeatro(id) {
   const dir = `teatros/${id}/`;
   const cfg = await (await fetch(dir + 'teatro.json')).json();
+  cfg.img = {};
+  if (cfg.productor) cfg.img.productor = await cargarImg(dir + cfg.productor.img);
   await Promise.all(cfg.formatos.map(async (f) => {
     const sub = `${dir}${f.id}/`;
     f.elementos = await (await fetch(sub + 'elementos.json')).json();
@@ -84,8 +102,8 @@ async function cargarTeatro(id) {
 
 // ---------- dibujo ----------
 
-function fuente(ctx, fs, familia, tracking = TRACKING) {
-  ctx.font = `${fs}px ${familia}`;
+function fuente(ctx, fs, familia, tracking = TRACKING, peso = 400) {
+  ctx.font = `${peso} ${fs}px ${familia}`;
   ctx.letterSpacing = `${fs * tracking}px`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
@@ -118,6 +136,31 @@ function escribir(ctx, str, fs, familia, cx, base, conSombra, tracking) {
   }
   ctx.fillText(str, cx, base);
   ctx.restore();
+}
+
+// Textos chicos fijos (pie, leyenda del productor): halo oscuro suave en vez
+// de la sombra de la fecha, para despegarlos del fondo.
+function escribirSuelto(ctx, str, fs, peso, x, base, alinear) {
+  ctx.save();
+  fuente(ctx, fs, FUENTE_TEXTO, TRACKING, peso);
+  ctx.textAlign = alinear;
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = 'rgba(0,0,0,.6)';
+  ctx.shadowBlur = fs * 0.8;
+  ctx.fillText(str, x, base);
+  ctx.restore();
+}
+
+function dibujarPie(ctx, f) {
+  const str = textoPie().trim();
+  if (str) escribirSuelto(ctx, str, f.pie.fs, 600, f.pie.x, f.pie.base, 'left');
+}
+
+// Logo del productor abajo a la derecha, con la leyenda alineada a su borde.
+function dibujarProductor(ctx, f) {
+  const p = f.productor, x = p.der - p.lado, y = p.abajo - p.lado;
+  ctx.drawImage(teatro.img.productor, x, y, p.lado, p.lado);
+  escribirSuelto(ctx, teatro.productor.texto, p.fs, 400, p.der, y - p.separacion, 'right');
 }
 
 // Estira una imagen a lo ancho sin deformar sus puntas.
@@ -206,6 +249,8 @@ function dibujar(f, ctx) {
   ctx.globalCompositeOperation = 'source-over';
   ctx.clearRect(0, 0, f.w, f.h);
   ctx.drawImage(f.img.base, 0, 0);
+  if (f.pie && teatro.pie) dibujarPie(ctx, f);
+  if (f.productor && teatro.productor) dibujarProductor(ctx, f);
   if (state.nueva.on && f.nueva) dibujarNueva(ctx, f);
   const ag = state.agotado.on && f.agotado ? textoAgotado() : '';
   if (ag) dibujarAgotado(ctx, f, ag);
@@ -322,24 +367,83 @@ async function descargar(f, canvas) {
 async function descargarZip() {
   const boton = $('#zip');
   boton.disabled = true;
+  const activa = state.activa, varias = state.fechas.length > 1;
   try {
     const zip = new JSZip();
-    for (const t of tarjetas) {
-      dibujar(t.f, t.ctx);
-      zip.file(nombreArchivo(t.f), await aBlob(t.f, t.canvas));
+    for (let i = 0; i < state.fechas.length; i++) {
+      state.activa = i;
+      // con varias fechas, una carpeta por fecha (los nombres fijos se repetirían)
+      const carpeta = varias ? cuando(i) + '/' : '';
+      for (const t of tarjetas) {
+        dibujar(t.f, t.ctx);
+        zip.file(carpeta + nombreArchivo(t.f), await aBlob(t.f, t.canvas));
+      }
     }
-    bajar(await zip.generateAsync({ type: 'blob' }), `${teatro.archivo} - ${cuando()}.zip`);
+    const nombre = varias ? `${state.fechas.length} fechas` : cuando();
+    bajar(await zip.generateAsync({ type: 'blob' }), `${teatro.archivo} - ${nombre}.zip`);
   } finally {
+    state.activa = activa;
     boton.disabled = false;
+    redibujar();
   }
 }
 
 // ---------- formulario ----------
 
+function sumarDia(fecha) {
+  if (!fecha) return '';
+  const d = new Date(fecha + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+// Una fila por fecha. Se rearma al agregar o quitar; al escribir solo se
+// actualiza el estado, para no perder el foco.
+function armarFechas() {
+  const cont = $('#fechas');
+  cont.textContent = '';
+  state.fechas.forEach((fn, i) => {
+    const fila = $('#tplFecha').content.firstElementChild.cloneNode(true);
+    const [f, h, t] = ['.f', '.h', '.t'].map((s) => fila.querySelector(s));
+    fila.classList.toggle('activa', i === state.activa);
+    fila.querySelector('.n').textContent = state.fechas.length > 1 ? `Fecha ${i + 1}` : 'Fecha';
+    f.value = fn.fecha; h.value = fn.hora; t.value = textoFuncion(fn);
+    const cambio = () => { t.value = textoFuncion(fn); redibujar(); actualizarZip(); };
+    f.addEventListener('input', () => { fn.fecha = f.value; cambio(); });
+    h.addEventListener('input', () => { fn.hora = h.value; cambio(); });
+    t.addEventListener('input', () => { fn.texto = t.value; redibujar(); });
+    fila.querySelector('.regen').onclick = () => { fn.texto = null; cambio(); };
+    const quitar = fila.querySelector('.quitar');
+    quitar.hidden = state.fechas.length < 2;
+    quitar.onclick = (e) => {
+      e.stopPropagation();
+      state.fechas.splice(i, 1);
+      if (state.activa >= i && state.activa > 0) state.activa--;
+      armarFechas(); redibujar();
+    };
+    // tocar una fila la muestra en las vistas previas
+    fila.addEventListener('focusin', () => verFecha(i));
+    fila.addEventListener('pointerdown', () => verFecha(i));
+    cont.appendChild(fila);
+  });
+  actualizarZip();
+}
+
+function verFecha(i) {
+  if (state.activa === i) return;
+  state.activa = i;
+  document.querySelectorAll('#fechas .fecha').forEach((el, j) => el.classList.toggle('activa', j === i));
+  redibujar();
+}
+
+function actualizarZip() {
+  const n = state.fechas.length;
+  $('#zip').textContent = n > 1 ? `Descargar las ${n} fechas (.zip)` : 'Descargar todos (.zip)';
+}
+
 function reflejarEstado() {
-  $('#fecha').value = state.fecha;
-  $('#hora').value = state.hora;
-  $('#textoFecha').value = textoPrincipal();
+  $('#seccionPie').hidden = !teatro.pie;
+  if (teatro.pie) $('#pieTexto').value = textoPie();
   $('#nuevaOn').checked = state.nueva.on;
   $('#nuevaTexto').value = state.nueva.texto;
   $('#agotadoOn').checked = state.agotado.on;
@@ -352,9 +456,15 @@ function reflejarEstado() {
 
 function conectarFormulario() {
   const al = (sel, ev, fn) => $(sel).addEventListener(ev, () => { fn($(sel)); reflejarEstado(); redibujar(); });
-  al('#fecha', 'input', (el) => { state.fecha = el.value; });
-  al('#hora', 'input', (el) => { state.hora = el.value; });
-  al('#textoFecha', 'input', (el) => { state.textoFecha = el.value; });
+  $('#agregarFecha').addEventListener('click', () => {
+    const ultima = state.fechas[state.fechas.length - 1];
+    state.fechas.push({ fecha: sumarDia(ultima.fecha), hora: ultima.hora, texto: null });
+    state.activa = state.fechas.length - 1;
+    armarFechas(); redibujar();
+    $('#fechas .fecha:last-child .f').focus();
+  });
+  al('#pieTexto', 'input', (el) => { state.pie[state.teatro] = el.value; });
+  $('#pieRegen').addEventListener('click', () => { delete state.pie[state.teatro]; reflejarEstado(); redibujar(); });
   al('#nuevaOn', 'change', (el) => { state.nueva.on = el.checked; });
   al('#nuevaTexto', 'input', (el) => { state.nueva.texto = el.value; });
   al('#agotadoOn', 'change', (el) => { state.agotado.on = el.checked; });
@@ -363,15 +473,12 @@ function conectarFormulario() {
   al('#agTexto', 'input', (el) => { state.agotado.texto = el.value; });
   document.querySelectorAll('input[name=salida]').forEach((r) =>
     r.addEventListener('change', () => { state.salida = r.value; guardar(); }));
-  document.querySelectorAll('[data-regen]').forEach((b) => b.addEventListener('click', () => {
-    if (b.dataset.regen === 'principal') state.textoFecha = null;
-    else state.agotado.texto = null;
-    reflejarEstado(); redibujar();
-  }));
+  $('#agRegen').addEventListener('click', () => { state.agotado.texto = null; reflejarEstado(); redibujar(); });
   $('#zip').addEventListener('click', descargarZip);
   $('#teatro').addEventListener('change', async (e) => {
     state.teatro = e.target.value;
     teatro = await cargarTeatro(state.teatro);
+    reflejarEstado();
     armarTarjetas();
   });
 }
@@ -384,9 +491,11 @@ async function iniciar() {
   await Promise.all([
     document.fonts.load(`40px ${FUENTE_FECHA}`, 'ÁÉÍÓÚÑ0123456789'),
     document.fonts.load(`40px ${FUENTE_TEXTO}`, 'ÁÉÍÓÚÑ'),
+    document.fonts.load(`600 40px ${FUENTE_TEXTO}`, 'ÁÉÍÓÚÑ–'),
   ]);
   teatro = await cargarTeatro(state.teatro);
   reflejarEstado();
+  armarFechas();
   conectarFormulario();
   armarTarjetas();
 }
