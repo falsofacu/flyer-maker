@@ -158,19 +158,28 @@ function dibujarNueva(ctx, f) {
   const n = f.nueva;
   const lineas = state.nueva.texto.split('\n').map((s) => s.trim()).filter(Boolean);
   if (!lineas.length) return;
-  const alto = n.fs * 1.2;
-  const cap = medir(ctx, 'H', n.fs, FUENTE_TEXTO).actualBoundingBoxAscent;
+  // el bloque tiene que entrar entre techo y piso (arriba de las cabezas):
+  // si no entra se achica, y si se pasa de un lado se corre
+  let fs = n.fs;
+  const capDe = (fs) => medir(ctx, 'H', fs, FUENTE_TEXTO).actualBoundingBoxAscent;
+  let altoBloque = (lineas.length - 1) * fs * 1.2 + capDe(fs);
+  if (altoBloque > n.piso - n.techo) {
+    fs *= (n.piso - n.techo) / altoBloque;
+    altoBloque = n.piso - n.techo;
+  }
+  const cy = Math.min(Math.max(n.cy, n.techo + altoBloque / 2), n.piso - altoBloque / 2);
+  const alto = fs * 1.2, cap = capDe(fs);
   let L = Infinity, R = -Infinity;
   lineas.forEach((s, i) => {
-    const base = n.cy - (lineas.length - 1) * alto / 2 + cap / 2 + i * alto;
-    escribir(ctx, s, n.fs, FUENTE_TEXTO, n.cx, base, false);
-    const k = caja(medir(ctx, s, n.fs, FUENTE_TEXTO), n.cx, base);
+    const base = cy - (lineas.length - 1) * alto / 2 + cap / 2 + i * alto;
+    escribir(ctx, s, fs, FUENTE_TEXTO, n.cx, base, false);
+    const k = caja(medir(ctx, s, fs, FUENTE_TEXTO), n.cx, base);
     L = Math.min(L, k.L); R = Math.max(R, k.R);
   });
   const li = f.img.lineaIzq, ld = f.img.lineaDer;
   const finIzq = L - n.separacion, iniDer = R + n.separacion;
-  if (finIzq - n.bordeIzq > 20) ctx.drawImage(li, n.bordeIzq, n.cy - (li.height - 1) / 2, finIzq - n.bordeIzq, li.height);
-  if (n.bordeDer - iniDer > 20) ctx.drawImage(ld, iniDer, n.cy - (ld.height - 1) / 2, n.bordeDer - iniDer, ld.height);
+  if (finIzq - n.bordeIzq > 20) ctx.drawImage(li, n.bordeIzq, cy - (li.height - 1) / 2, finIzq - n.bordeIzq, li.height);
+  if (n.bordeDer - iniDer > 20) ctx.drawImage(ld, iniDer, cy - (ld.height - 1) / 2, n.bordeDer - iniDer, ld.height);
 }
 
 function estadoBrillos(f) {

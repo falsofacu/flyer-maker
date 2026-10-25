@@ -6,13 +6,13 @@
     {
       "id": "hor", "nombre": "Horizontal", "archivo": "HOR 1920x1080", "w": 1920, "h": 1080,
       "fecha": { "cx": 960, "base": 995, "fs": 75.4, "maxW": 880, "ref": [655, 933, 1264, 995] },
-      "nueva": { "cx": 961, "cy": 32, "fs": 28.4, "bordeIzq": 614, "bordeDer": 1305, "separacion": 14 },
+      "nueva": { "cx": 961, "cy": 32, "fs": 28.4, "bordeIzq": 614, "bordeDer": 1305, "separacion": 14, "techo": 8, "piso": 48 },
       "brillos": ["brillo1"]
     },
     {
       "id": "post", "nombre": "Post Instagram", "archivo": "POST 1080x1350", "w": 1080, "h": 1350,
       "fecha": { "cx": 540, "base": 1108, "fs": 60.45, "maxW": 778, "ref": [271, 1059, 759, 1108], "techoSinAgotado": 1006 },
-      "nueva": { "cx": 541, "cy": 36, "fs": 28.4, "bordeIzq": 194, "bordeDer": 885, "separacion": 14 },
+      "nueva": { "cx": 541, "cy": 36, "fs": 28.4, "bordeIzq": 194, "bordeDer": 885, "separacion": 14, "techo": 8, "piso": 58 },
       "agotado": {
         "dx": -11, "base": 1033.6, "fs": 33.3, "maxW": 520,
         "sello": { "dx": -62, "dy": -14 },
@@ -23,7 +23,7 @@
     {
       "id": "vert", "nombre": "Vertical", "archivo": "VERT 1080x1920", "w": 1080, "h": 1920,
       "fecha": { "cx": 540, "base": 1586, "fs": 80.6, "maxW": 945, "ref": [178, 1520, 902, 1586], "techoSinAgotado": 1432 },
-      "nueva": { "cx": 541, "cy": 117, "fs": 27.9, "bordeIzq": 194, "bordeDer": 885, "separacion": 22 },
+      "nueva": { "cx": 541, "cy": 117, "fs": 27.9, "bordeIzq": 194, "bordeDer": 885, "separacion": 22, "techo": 60, "piso": 190 },
       "agotado": {
         "dx": -15, "base": 1468, "fs": 44.44, "maxW": 640,
         "sello": { "dx": -104, "dy": -16 },
