@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flyer Maker</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="top">
+  <h1>Flyer Maker</h1>
+  <label class="teatro">Teatro
+    <select id="teatro"></select>
+  </label>
+</header>
+
+<main class="layout">
+  <aside class="panel">
+    <section>
+      <h2>Función</h2>
+      <div class="row">
+        <label>Fecha <input type="date" id="fecha"></label>
+        <label>Hora <input type="time" id="hora" value="21:30"></label>
+      </div>
+      <label>Texto
+        <input type="text" id="textoFecha" spellcheck="false">
+      </label>
+      <p class="hint">Se arma solo con la fecha y la hora. Si lo editás a mano queda fijo hasta que toques <button type="button" class="link" data-regen="principal">regenerar</button>.</p>
+    </section>
+
+    <section>
+      <label class="check"><input type="checkbox" id="nuevaOn"> <h2>Nueva función</h2></label>
+      <div class="sub" data-si="nuevaOn">
+        <label>Texto <textarea id="nuevaTexto" rows="2" spellcheck="false"></textarea></label>
+        <p class="hint">Va arriba con las líneas a los costados. Enter para partir en dos renglones. No sale en el Mini.</p>
+      </div>
+    </section>
+
+    <section>
+      <label class="check"><input type="checkbox" id="agotadoOn"> <h2>Función agotada</h2></label>
+      <div class="sub" data-si="agotadoOn">
+        <div class="row">
+          <label>Fecha <input type="date" id="agFecha"></label>
+          <label>Hora <input type="time" id="agHora" value="21:30"></label>
+        </div>
+        <label>Texto <input type="text" id="agTexto" spellcheck="false"></label>
+        <p class="hint">Fecha tachada con el sello de agotado (Post y Vertical). Apagado, la fecha principal crece hacia arriba. <button type="button" class="link" data-regen="agotado">regenerar</button></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Brillos</h2>
+      <p class="hint">Siguen solos el largo de la fecha. Arrastralos en cada vista previa para acomodarlos, o apagalos con los botones de abajo de cada una.</p>
+    </section>
+
+    <section>
+      <h2>Exportar</h2>
+      <div class="row">
+        <label class="radio"><input type="radio" name="salida" value="png" checked> PNG</label>
+        <label class="radio"><input type="radio" name="salida" value="jpg"> JPG</label>
+      </div>
+      <button type="button" id="zip" class="primary">Descargar todos (.zip)</button>
+    </section>
+  </aside>
+
+  <section class="previews" id="previews"></section>
+</main>
+
+<template id="tplCard">
+  <article class="card">
+    <header>
+      <h3></h3>
+      <button type="button" class="dl">Descargar</button>
+    </header>
+    <div class="stage"><canvas></canvas></div>
+    <footer class="brillos"></footer>
+  </article>
+</template>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

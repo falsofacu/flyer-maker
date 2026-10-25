@@ -1,0 +1,90 @@
+@font-face { font-family: "GC Grind"; src: url("../fonts/GCGrind.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "Grift"; src: url("../fonts/Grift-Regular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Grift"; src: url("../fonts/Grift-Medium.woff2") format("woff2"); font-weight: 500; font-display: block; }
+
+:root {
+  --bg: #0d0614;
+  --panel: #170b24;
+  --line: #2e1a45;
+  --text: #f1eaf8;
+  --muted: #a594b8;
+  --accent: #b36bff;
+  --gold: #e4c06a;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.4 "Grift", system-ui, sans-serif;
+}
+
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 24px; border-bottom: 1px solid var(--line);
+}
+.top h1 { margin: 0; font: 26px "GC Grind", sans-serif; letter-spacing: .02em; color: var(--gold); }
+.teatro { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+
+.layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 60px); }
+.panel {
+  border-right: 1px solid var(--line); background: var(--panel);
+  padding: 8px 20px 24px; position: sticky; top: 0; align-self: start;
+  max-height: 100vh; overflow-y: auto;
+}
+.panel section { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.panel section:last-child { border-bottom: 0; }
+h2 { margin: 0 0 10px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.check h2 { display: inline; margin: 0; }
+.check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.sub { margin-top: 10px; }
+.sub.off { display: none; }
+
+label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.row { display: flex; gap: 10px; }
+.row > label { flex: 1; }
+.radio { display: flex; align-items: center; gap: 6px; flex: 0 0 auto !important; }
+
+input[type=text], input[type=date], input[type=time], textarea, select {
+  display: block; width: 100%; margin-top: 4px;
+  background: #0d0614; color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 10px; font: inherit; color-scheme: dark;
+}
+select { width: auto; margin: 0; }
+textarea { resize: vertical; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); width: 16px; height: 16px; }
+
+.hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-size: inherit; }
+.primary, .dl {
+  border: 0; border-radius: 6px; background: var(--accent); color: #12051f; font-weight: 500;
+}
+.primary { width: 100%; padding: 11px; margin-top: 6px; }
+.primary:disabled { opacity: .6; cursor: wait; }
+
+.previews {
+  padding: 24px; display: grid; gap: 24px; align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.card.ancho { grid-column: 1 / -1; }
+.card > header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
+.card h3 { margin: 0; font-size: 14px; font-weight: 500; }
+.card h3 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.dl { padding: 6px 12px; font-size: 13px; }
+.stage { background: #000; display: flex; justify-content: center; }
+.stage canvas { display: block; max-width: 100%; max-height: 70vh; height: auto; touch-action: none; }
+.stage canvas.sobre { cursor: grab; }
+.stage canvas.arrastrando { cursor: grabbing; }
+.brillos { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 10px 14px; font-size: 13px; color: var(--muted); }
+.brillos label { display: flex; align-items: center; gap: 6px; margin: 0; }
+
+@media (max-width: 800px) {
+  .top { padding: 12px 16px; }
+  .layout { grid-template-columns: 1fr; }
+  .panel { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px 16px 16px; }
+  .previews { padding: 16px; grid-template-columns: 1fr; }
+}
