@@ -47,14 +47,16 @@ function textoDe(fecha, hora) {
 const textoPrincipal = () => state.textoFecha ?? textoDe(state.fecha, state.hora);
 const textoAgotado = () => state.agotado.texto ?? textoDe(state.agotado.fecha, state.agotado.hora);
 
-function nombreArchivo(f) {
-  let cuando = 'sin fecha';
-  if (state.fecha) {
-    const [, m, d] = state.fecha.split('-').map(Number);
-    cuando = `${d} ${MESES[m - 1].toLowerCase()}`;
-  }
-  return `${teatro.archivo} - ${f.archivo} - ${cuando}.${state.salida}`;
+function cuando() {
+  if (!state.fecha) return 'sin fecha';
+  const [, m, d] = state.fecha.split('-').map(Number);
+  return `${d} ${MESES[m - 1].toLowerCase()}`;
 }
+
+// Algunos teatros piden un nombre y un tipo de archivo fijos por formato.
+const tipoSalida = (f) => f.tipo || state.salida;
+const nombreArchivo = (f) => (f.nombreFijo ? f.archivo : `${teatro.archivo} - ${f.archivo} - ${cuando()}`)
+  + '.' + tipoSalida(f);
 
 // ---------- carga ----------
 
@@ -82,16 +84,16 @@ async function cargarTeatro(id) {
 
 // ---------- dibujo ----------
 
-function fuente(ctx, fs, familia) {
+function fuente(ctx, fs, familia, tracking = TRACKING) {
   ctx.font = `${fs}px ${familia}`;
-  ctx.letterSpacing = `${fs * TRACKING}px`;
+  ctx.letterSpacing = `${fs * tracking}px`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
 }
 
-function medir(ctx, str, fs, familia) {
+function medir(ctx, str, fs, familia, tracking) {
   ctx.save();
-  fuente(ctx, fs, familia);
+  fuente(ctx, fs, familia, tracking);
   const m = ctx.measureText(str);
   ctx.restore();
   return m;
@@ -103,9 +105,9 @@ const caja = (m, cx, base) => ({
   T: base - m.actualBoundingBoxAscent, B: base + m.actualBoundingBoxDescent,
 });
 
-function escribir(ctx, str, fs, familia, cx, base, conSombra) {
+function escribir(ctx, str, fs, familia, cx, base, conSombra, tracking) {
   ctx.save();
-  fuente(ctx, fs, familia);
+  fuente(ctx, fs, familia, tracking);
   ctx.fillStyle = '#fff';
   if (conSombra) {
     const s = teatro.sombra, a = s.angulo * Math.PI / 180;
@@ -129,15 +131,15 @@ function tresPartes(ctx, im, x, y, w, izq, der) {
 function dibujarFecha(ctx, f, hayAgotado) {
   const p = f.fecha, str = textoPrincipal();
   if (!str) return { L: p.ref[0], T: p.ref[1], R: p.ref[2], B: p.ref[3] };
-  const m = medir(ctx, str, p.fs, FUENTE_FECHA);
+  const m = medir(ctx, str, p.fs, FUENTE_FECHA, p.tracking);
   let fs = Math.min(p.fs, p.fs * p.maxW / ancho(m));
   if (!hayAgotado && p.techoSinAgotado) {
     // sin la línea de agotado, la fecha crece hacia arriba hasta ese techo
     const subida = m.actualBoundingBoxAscent / p.fs;
     fs = Math.min((p.base - p.techoSinAgotado) / subida, p.fs * p.maxW / ancho(m));
   }
-  escribir(ctx, str, fs, FUENTE_FECHA, p.cx, p.base, true);
-  return caja(medir(ctx, str, fs, FUENTE_FECHA), p.cx, p.base);
+  escribir(ctx, str, fs, FUENTE_FECHA, p.cx, p.base, true, p.tracking);
+  return caja(medir(ctx, str, fs, FUENTE_FECHA, p.tracking), p.cx, p.base);
 }
 
 function dibujarAgotado(ctx, f, str) {
@@ -299,8 +301,8 @@ function activarArrastre(canvas, f) {
 
 // ---------- exportar ----------
 
-function aBlob(canvas) {
-  const tipo = state.salida === 'jpg' ? 'image/jpeg' : 'image/png';
+function aBlob(f, canvas) {
+  const tipo = tipoSalida(f) === 'jpg' ? 'image/jpeg' : 'image/png';
   return new Promise((ok) => canvas.toBlob(ok, tipo, 0.95));
 }
 
@@ -314,7 +316,7 @@ function bajar(blob, nombre) {
 
 async function descargar(f, canvas) {
   dibujar(f, canvas.getContext('2d'));
-  bajar(await aBlob(canvas), nombreArchivo(f));
+  bajar(await aBlob(f, canvas), nombreArchivo(f));
 }
 
 async function descargarZip() {
@@ -324,10 +326,9 @@ async function descargarZip() {
     const zip = new JSZip();
     for (const t of tarjetas) {
       dibujar(t.f, t.ctx);
-      zip.file(nombreArchivo(t.f), await aBlob(t.canvas));
+      zip.file(nombreArchivo(t.f), await aBlob(t.f, t.canvas));
     }
-    const nombre = nombreArchivo(tarjetas[0].f).replace(/ - [^-]+ - /, ' - ').replace(/\.\w+$/, '.zip');
-    bajar(await zip.generateAsync({ type: 'blob' }), nombre);
+    bajar(await zip.generateAsync({ type: 'blob' }), `${teatro.archivo} - ${cuando()}.zip`);
   } finally {
     boton.disabled = false;
   }

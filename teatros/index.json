@@ -1,3 +1,4 @@
 [
-  { "id": "movie", "nombre": "Teatro Movie" }
+  { "id": "movie", "nombre": "Teatro Movie" },
+  { "id": "paseo-la-plaza", "nombre": "Paseo La Plaza" }
 ]

@@ -40,4 +40,11 @@ Cada formato de un teatro tiene su carpeta en `teatros/<teatro>/<formato>/`, con
    ```bash
    python tools/recortar.py teatros/<teatro>/<formato>
    ```
+   Si el lienzo del PSD quedó un píxel más corto que la medida pedida (pasa con el 1200x629 de Paseo La Plaza), agregá `--alto 629` y completa el fondo repitiendo la última fila.
 4. Agregá el formato en `teatro.json` y el teatro en `teatros/index.json`.
+
+Opciones de cada formato en `teatro.json`:
+
+- `nombreFijo` + `tipo`: para teatros que piden un nombre y un tipo de archivo exactos (por ejemplo `img-05-PATOTERA.jpg`). El nombre sale de `archivo`.
+- `fecha.tracking`: el tracking del texto de la fecha si no es 10 (en em: tracking 50 = `0.05`).
+- `nueva` y `agotado`: si un formato no los tiene, esa opción no aparece en ese flyer.

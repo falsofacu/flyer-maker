@@ -1,10 +1,24 @@
 """Recorta los PNG de elementos exportados por export_capas.jsx a su caja
-visible y escribe elementos.json con la posición original de cada uno."""
+visible y escribe elementos.json con la posición original de cada uno.
+
+Con --alto N, si base.png es más bajo que N lo completa repitiendo la última
+fila (para PSD con el lienzo un píxel más corto que la medida pedida)."""
 import json, sys
 from pathlib import Path
 from PIL import Image
 
 carpeta = Path(sys.argv[1])
+if '--alto' in sys.argv:
+    alto = int(sys.argv[sys.argv.index('--alto') + 1])
+    base = Image.open(carpeta / 'base.png')
+    if base.height < alto:
+        nueva = Image.new(base.mode, (base.width, alto))
+        nueva.paste(base, (0, 0))
+        fila = base.crop((0, base.height - 1, base.width, base.height))
+        for y in range(base.height, alto):
+            nueva.paste(fila, (0, y))
+        nueva.save(carpeta / 'base.png', optimize=True)
+        print('base completada a', base.width, 'x', alto)
 info = {}
 for png in sorted(carpeta.glob('*.png')):
     if png.stem == 'base':
