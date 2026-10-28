@@ -59,6 +59,7 @@ Opciones de cada formato en `teatro.json`:
 
 - `nombreFijo` + `tipo`: para teatros que piden un nombre y un tipo de archivo exactos (por ejemplo `img-05-PATOTERA.jpg`). El nombre sale de `archivo`.
 - `fecha.tracking`: el tracking del texto de la fecha si no es 10 (en em: tracking 50 = `0.05`).
+- `fecha.plantilla`: para que ese formato arme la fecha distinto, con `{dia}`, `{mes}` y `{hora}`. Por ejemplo, el Post y el Vertical de Paseo La Plaza usan `"{dia} DE {mes} - PASEO LA PLAZA"` en vez de la hora. Si el texto se edita a mano, sale el texto editado.
 - `nueva` y `agotado`: si un formato no los tiene, esa opción no aparece en ese flyer.
 - `pie` (en el teatro, el texto por defecto; en cada formato, `x`, `base` y `fs`): texto editable abajo a la izquierda.
 - `productor` (en el teatro, `img` y `texto`; en cada formato, `der`, `abajo`, `lado`, `fs` y `separacion`): logo cuadrado del productor abajo a la derecha, centrado bajo su leyenda (la leyenda termina en `der`).

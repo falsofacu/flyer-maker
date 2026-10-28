@@ -4,6 +4,16 @@
   "sombra": { "opacidad": 0.5, "distancia": 12, "tamano": 24, "angulo": 90 },
   "formatos": [
     {
+      "id": "1080x1350", "nombre": "Post", "archivo": "POST 1080x1350", "w": 1080, "h": 1350,
+      "fecha": { "cx": 545.1, "base": 1080.75, "fs": 61.6, "maxW": 760, "ref": [196, 1031, 894, 1081], "plantilla": "{dia} DE {mes} - PASEO LA PLAZA" },
+      "brillos": ["brillo1"]
+    },
+    {
+      "id": "1080x1920", "nombre": "Vertical", "archivo": "VERT 1080x1920", "w": 1080, "h": 1920,
+      "fecha": { "cx": 540, "base": 1377.26, "fs": 74.2, "maxW": 900, "ref": [105, 1316, 975, 1377], "plantilla": "{dia} DE {mes} - PASEO LA PLAZA" },
+      "brillos": ["brillo1"]
+    },
+    {
       "id": "1200x629", "nombre": "Web 1200×629", "archivo": "img-05-PATOTERA", "nombreFijo": true, "tipo": "jpg",
       "w": 1200, "h": 629,
       "fecha": { "cx": 604.5, "base": 579, "fs": 43.9, "maxW": 528, "ref": [424, 543, 784, 579] },

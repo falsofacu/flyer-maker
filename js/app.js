@@ -64,6 +64,16 @@ const funcionEnCurso = () => enCurso || state.fechas[state.activa];
 
 const textoFuncion = (fn) => fn.texto ?? textoDe(fn.fecha, fn.hora);
 const textoPrincipal = () => textoFuncion(funcionEnCurso());
+
+// Un formato puede armar la fecha a su manera con fecha.plantilla (por ejemplo
+// "{dia} DE {mes} - PASEO LA PLAZA" en vez de la hora). Si el texto se
+// editó a mano, manda el texto editado.
+function textoFechaDe(f) {
+  const fn = funcionEnCurso(), plantilla = f.fecha.plantilla;
+  if (fn.texto != null || !plantilla || !fn.fecha) return textoFuncion(fn);
+  const [, m, d] = fn.fecha.split('-').map(Number);
+  return plantilla.replace('{dia}', d).replace('{mes}', MESES[m - 1]).replace('{hora}', fn.hora || '');
+}
 const textoAgotado = () => state.agotado.texto ?? textoDe(state.agotado.fecha, state.agotado.hora);
 const textoPie = () => state.pie[teatro.id] ?? teatro.pie;
 
@@ -192,7 +202,7 @@ function tresPartes(ctx, im, x, y, w, izq, der) {
 }
 
 function dibujarFecha(ctx, f, hayAgotado) {
-  const p = f.fecha, str = textoPrincipal();
+  const p = f.fecha, str = textoFechaDe(f);
   if (!str) return { L: p.ref[0], T: p.ref[1], R: p.ref[2], B: p.ref[3] };
   const m = medir(ctx, str, p.fs, FUENTE_FECHA, p.tracking);
   // el tamaño del PSD es el tope: solo se achica si no entra a lo ancho
