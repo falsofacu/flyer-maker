@@ -437,9 +437,9 @@ const descargarZip = () => exportar(state.fechas, $('#zip'));
 
 // ---------- fechas de la web de Yipio ----------
 
-// Las fechas salen del mismo JSON que usa soyyipio.github.io, incluidas las
+// Las fechas salen del mismo JSON que usa yipio.com.uy, incluidas las
 // que tienen "visible": false (todavía no anunciadas en la web).
-const FECHAS_WEB = 'https://soyyipio.github.io/data/fechas.json';
+const FECHAS_WEB = 'https://yipio.com.uy/data/fechas.json';
 const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 let fechasWeb = null;
 
@@ -459,7 +459,7 @@ const isoFecha = (s) => (s || '').split('-').map((p, i) => (i ? p.padStart(2, '0
 const claveWeb = (f) => `${f.id}|${f.fecha}|${f.hora}`;
 
 async function cargarFechasWeb() {
-  $('#webEstado').textContent = 'Cargando fechas de soyyipio.github.io…';
+  $('#webEstado').textContent = 'Cargando fechas de yipio.com.uy…';
   try {
     const r = await fetch(FECHAS_WEB, { cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
@@ -468,10 +468,10 @@ async function cargarFechasWeb() {
       const fecha = isoFecha(f.fecha), t = teatroDeLugar(f.lugar);
       return { ...f, fecha, hora: f.hora || '', teatro: t && t.id, pasada: fecha < hoy };
     }).sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`));
-    $('#webEstado').textContent = `${fechasWeb.length} fechas de soyyipio.github.io.`;
+    $('#webEstado').textContent = `${fechasWeb.length} fechas de yipio.com.uy.`;
   } catch {
     fechasWeb = null;
-    $('#webEstado').textContent = 'No pude cargar las fechas de soyyipio.github.io (¿sin conexión?).';
+    $('#webEstado').textContent = 'No pude cargar las fechas de yipio.com.uy (¿sin conexión?).';
   }
   armarFechasWeb();
 }

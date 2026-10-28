@@ -16,7 +16,7 @@ Algunos teatros tienen además un **texto de abajo** editable (por ejemplo el no
 
 ### Fechas de la web de Yipio
 
-Abajo de todo está la lista de funciones de `data/fechas.json` de soyyipio.github.io (se lee en vivo; **Recargar** la vuelve a pedir). Incluye las que tienen `"visible": false`, que no salen en la web. Cada función se asocia sola a su teatro por el campo `lugar`, con los `lugares` de `teatros/index.json` (sin importar mayúsculas ni tildes). Si un lugar no coincide con ningún teatro, aparece pero no se puede elegir.
+Abajo de todo está la lista de funciones de `data/fechas.json` de yipio.com.uy (se lee en vivo; **Recargar** la vuelve a pedir). Incluye las que tienen `"visible": false`, que no salen en la web. Cada función se asocia sola a su teatro por el campo `lugar`, con los `lugares` de `teatros/index.json` (sin importar mayúsculas ni tildes). Si un lugar no coincide con ningún teatro, aparece pero no se puede elegir.
 
 Vienen tildadas las próximas que no están agotadas. **Exportar** arma un .zip con todos los formatos de cada función elegida, con las mismas opciones de arriba (nueva función, agotada, brillos, PNG o JPG). La hora sale del JSON: si está vacía, el flyer lleva solo el día.
 
