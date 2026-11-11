@@ -1,5 +1,6 @@
 [
   { "id": "movie", "nombre": "Teatro Movie", "lugares": ["Teatro Movie", "Movie"] },
   { "id": "paseo-la-plaza", "nombre": "Paseo La Plaza", "lugares": ["Paseo La Plaza"] },
-  { "id": "candilejas-2", "nombre": "Candilejas 2 – Villa Carlos Paz", "lugares": ["Candilejas 2", "Candilejas"] }
+  { "id": "candilejas-2", "nombre": "Candilejas 2 – Villa Carlos Paz", "lugares": ["Candilejas 2", "Candilejas"] },
+  { "id": "chacarerean", "nombre": "Chacarerean Teatre", "lugares": ["Chacarerean"] }
 ]
